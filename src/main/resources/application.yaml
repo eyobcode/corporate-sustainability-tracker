@@ -13,6 +13,11 @@ spring:
   jwt:
     secret: thisIsMySecretKeyAndItShouldBeLongEnough123456
     expiration: 86400000 # 24hr
+  web:
+    error:
+      include-message: always
+      include-stacktrace: never
+      include-binding-errors: always
 #    accessTokenExpiration: 7200 # 300 # 3m
 #    refreshTokenExpiration: 604800 # 7d
 kind: Application
