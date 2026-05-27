@@ -5,6 +5,7 @@ import com.sustainabilitytracker.sustainabilitytracker.dtos.response.UserRespons
 import com.sustainabilitytracker.sustainabilitytracker.enums.Role;
 import com.sustainabilitytracker.sustainabilitytracker.mappers.UserMapper;
 import com.sustainabilitytracker.sustainabilitytracker.repositories.UserRepository;
+import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -29,7 +30,7 @@ public class UserController {
     @PostMapping("/register")
     public ResponseEntity<UserResponse> createUser(
             UriComponentsBuilder uriBuilder,
-            @RequestBody RegisterUserRequest request){
+            @Valid @RequestBody RegisterUserRequest request){
         System.out.println("=========================");
         if(userRepository.existsByEmail(request.getEmail())) return ResponseEntity.badRequest().build();
         var user = userMapper.toEntity(request);

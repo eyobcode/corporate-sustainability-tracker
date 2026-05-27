@@ -41,7 +41,7 @@ public class User {
 
     @ColumnDefault("1")
     @Column(name = "is_active")
-    private Boolean isActive;
+    private Boolean isActive = true;
 
     @ColumnDefault("1")
     @Column(name = "is_first_login")
