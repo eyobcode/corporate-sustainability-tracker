@@ -9,7 +9,7 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
 
-@ValidRegisterUser
+//@ValidRegisterUser
 @Data
 public class RegisterUserRequest {
 
