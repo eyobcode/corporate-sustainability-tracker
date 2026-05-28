@@ -30,38 +30,34 @@ public class AuthService {
         }
 
         User user = userMapper.toEntity(request);
-        Role userRole = user.getRole();
 
-        if (userRole == Role.DEPT_MANAGER || userRole == Role.EMPLOYEE) {
-            if (user.getDepartment() == null || user.getDepartment().getId() == null) {
+        Role role = request.getRole();
+
+        if (role == Role.DEPT_MANAGER || role == Role.EMPLOYEE) {
+
+            if (request.getDepartmentId() == null) {
                 throw new BadRequestException("Department is required for DEPT_MANAGER and EMPLOYEE roles");
             }
 
-            Long departmentId = user.getDepartment().getId();
-            Department department = departmentRepository.findById(departmentId)
+            Department department = departmentRepository.findById(request.getDepartmentId())
                     .orElseThrow(() -> new ResourceNotFoundException(
-                            "Department with id " + departmentId + " does not exist"
-                    ));
+                            "Department with id " + request.getDepartmentId() + " does not exist"));
 
+            user.assignToDepartment(department);
             user.setCompany(department.getCompany());
-//            user.setDepartment(department);
         }
-        else if (userRole == Role.ADMIN) {
-
-            if (user.getCompany() != null) {
-                throw new BadRequestException("ADMIN user should not have companyId");
-            }
-            if (user.getDepartment() != null) {
-                throw new BadRequestException("ADMIN user should not have departmentId");
+        else if (role == Role.ADMIN) {
+            if (request.getCompanyId() != null || request.getDepartmentId() != null) {
+                throw new BadRequestException("ADMIN should not have companyId or departmentId");
             }
         }
+        else {
+            throw new BadRequestException("Invalid role");
+        }
 
-//        user.setPassword(passwordEncoder.encode(user.getPassword()));
-        user.setPassword(user.getPassword());
-
+//        user.setPassword(passwordEncoder.encode(request.getPassword()));
+        user.setPassword(request.getPassword());
         User savedUser = userRepository.save(user);
-
-        // Send welcome notification later
 
         return userMapper.toResponse(savedUser);
     }
