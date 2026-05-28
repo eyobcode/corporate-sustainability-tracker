@@ -31,17 +31,14 @@ public class UserController {
     public ResponseEntity<UserResponse> createUser(
             UriComponentsBuilder uriBuilder,
             @Valid @RequestBody RegisterUserRequest request){
-        System.out.println("=========================");
         if(userRepository.existsByEmail(request.getEmail())) return ResponseEntity.badRequest().build();
         var user = userMapper.toEntity(request);
-        user.setCompany(null);
-        user.setDepartment(null);
         user.setRole(Role.ADMIN);
         user.setPassword(user.getPassword());
 //        user.setPassword(passwordEncoder.encode(user.getPassword()));
         userRepository.save(user);
 
-        var userResponse = userMapper.toDto(user);
+        var userResponse = userMapper.toResponse(user);
         var uri = uriBuilder.path("/users/{id}").buildAndExpand(userResponse.getId()).toUri();
 
         return ResponseEntity.created(uri).body(userResponse);
