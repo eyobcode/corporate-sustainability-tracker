@@ -5,6 +5,7 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.annotations.ColumnDefault;
+import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.Instant;
 
@@ -50,9 +51,11 @@ public class User {
     @Column(name = "last_login")
     private Instant lastLogin;
 
+    @CreationTimestamp
     @ColumnDefault("CURRENT_TIMESTAMP")
-    @Column(name = "created_at")
+    @Column(name = "created_at",updatable = false)
     private Instant createdAt;
+
 
     @ColumnDefault("CURRENT_TIMESTAMP")
     @Column(name = "updated_at")
