@@ -14,6 +14,7 @@ import com.sustainabilitytracker.sustainabilitytracker.repositories.DepartmentRe
 import com.sustainabilitytracker.sustainabilitytracker.repositories.UserRepository;
 import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -67,12 +68,30 @@ public class AuthService {
         return userMapper.toResponse(savedUser);
     }
 
-    public User getCurrentUser(){
-        var authentication = SecurityContextHolder.getContext().getAuthentication();
-        var userId =(Long) authentication.getPrincipal();
+    public User getCurrentUser() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
-        return userRepository.findById(userId).orElseThrow(() -> new UsernameNotFoundException("User not found please login first."));
+        if (authentication == null || !authentication.isAuthenticated()) {
+            throw new UsernameNotFoundException("User not found. Please log in first.");
+        }
+
+        Object principal = authentication.getPrincipal();
+
+        // If my own User entity was stored in principal
+        if (principal instanceof User user) {
+            return user;
+        }
+
+        if (principal instanceof UserDetails userDetails) {
+            String email = userDetails.getUsername();
+
+            return userRepository.findByEmail(email)
+                    .orElseThrow(() -> new UsernameNotFoundException("User not found with email: " + email));
+        }
+
+        throw new UsernameNotFoundException("Unable to get current user");
     }
+
 
     public void changePassword(ChangePasswordRequest request) {
 
