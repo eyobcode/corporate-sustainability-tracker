@@ -12,7 +12,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 import java.util.List;
 
 @RestController
-@RequestMapping("/company")
+@RequestMapping("/companies")
 @AllArgsConstructor
 public class CompanyController {
     private final CompanyService companyService;
@@ -29,7 +29,7 @@ public class CompanyController {
             UriComponentsBuilder uriBuilder){
 
         var companyResponse = companyService.createCompany(request);
-        var uri = uriBuilder.path("api/v1/company/{id}").buildAndExpand(companyResponse.getId()).toUri();
+        var uri = uriBuilder.path("api/v1/companies/{id}").buildAndExpand(companyResponse.getId()).toUri();
 
        return ResponseEntity.created(uri).body(companyResponse);
     }
@@ -38,14 +38,24 @@ public class CompanyController {
     public ResponseEntity<CompanyResponse> getCompanies(@PathVariable Long companyId) {
         return ResponseEntity.ok(companyService.getCompanyById(companyId));
     }
+
+    @PutMapping("/{companyId}")
+    public ResponseEntity<CompanyResponse> updateCompany(
+            @RequestBody CompanyRequest request,
+            @PathVariable Long companyId) {
+
+       CompanyResponse companyResponse = companyService.updateCompany(companyId, request);
+
+       return ResponseEntity.ok(companyResponse);
+    }
 }
 //         → getAllCompanies()
 //- POST   /api/v1/companies
 //         → createCompany()
-
 //- GET    /api/v1/companies/{id}
 //        → getCompanyById()
 //- PUT    /api/v1/companies/{id}
 //        → updateCompany()
+
 //- DELETE /api/v1/companies/{id}
 //        → deactivateCompany()
