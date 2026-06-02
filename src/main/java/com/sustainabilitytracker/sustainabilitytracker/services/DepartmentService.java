@@ -1,7 +1,21 @@
 package com.sustainabilitytracker.sustainabilitytracker.services;
 
+import com.sustainabilitytracker.sustainabilitytracker.dtos.request.DepartmentRequest;
+import com.sustainabilitytracker.sustainabilitytracker.dtos.response.DepartmentResponse;
+import com.sustainabilitytracker.sustainabilitytracker.entities.Company;
+import com.sustainabilitytracker.sustainabilitytracker.entities.Department;
+import com.sustainabilitytracker.sustainabilitytracker.exceptions.DuplicateResourceException;
+import com.sustainabilitytracker.sustainabilitytracker.exceptions.ResourceNotFoundException;
+import com.sustainabilitytracker.sustainabilitytracker.mappers.DepartmentMapper;
+import com.sustainabilitytracker.sustainabilitytracker.repositories.CompanyRepository;
+import com.sustainabilitytracker.sustainabilitytracker.repositories.DepartmentRepository;
+import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
 
 @Service
+@AllArgsConstructor
 public class DepartmentService {
 }
