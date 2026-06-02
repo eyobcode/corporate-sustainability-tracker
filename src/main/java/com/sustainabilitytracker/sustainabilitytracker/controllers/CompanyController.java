@@ -33,10 +33,16 @@ public class CompanyController {
 
        return ResponseEntity.created(uri).body(companyResponse);
     }
+
+    @GetMapping("/{companyId}")
+    public ResponseEntity<CompanyResponse> getCompanies(@PathVariable Long companyId) {
+        return ResponseEntity.ok(companyService.getCompanyById(companyId));
+    }
 }
 //         → getAllCompanies()
 //- POST   /api/v1/companies
 //         → createCompany()
+
 //- GET    /api/v1/companies/{id}
 //        → getCompanyById()
 //- PUT    /api/v1/companies/{id}
