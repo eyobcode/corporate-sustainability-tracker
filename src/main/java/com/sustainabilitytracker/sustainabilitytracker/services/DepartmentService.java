@@ -28,24 +28,21 @@ public class DepartmentService {
 
         Company company = companyRepository
                 .findByIdAndIsActiveTrue(request.getCompanyId())
-                .orElseThrow(() ->
-                        new ResourceNotFoundException(
-                                "Active company not found with id: " + request.getCompanyId()
-                        )
-                );
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Active company not found with id: " + request.getCompanyId()));
 
-        if (departmentRepository.existsByNameAndCompanyId(
-                request.getName(), company.getId())) {
-
+        if (departmentRepository.existsByNameAndCompanyId(request.getName(), company.getId())) {
             throw new DuplicateResourceException(
-                    "Department already exists with name: " + request.getName()
-            );
+                    "Department already exists with name: " + request.getName());
         }
 
         Department department = departmentMapper.toEntity(request);
         department.setCompany(company);
+        department.setIsActive(true);
 
-        return departmentMapper.toResponse(department);
+        Department saved = departmentRepository.save(department);
+
+        return departmentMapper.toResponse(saved);
     }
 
     public List<DepartmentResponse> getDepartmentsByCompany(Long companyId) {
