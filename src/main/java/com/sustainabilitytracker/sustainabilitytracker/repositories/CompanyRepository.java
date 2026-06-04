@@ -1,7 +1,6 @@
 package com.sustainabilitytracker.sustainabilitytracker.repositories;
 
 import com.sustainabilitytracker.sustainabilitytracker.entities.Company;
-import jakarta.validation.constraints.NotNull;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
@@ -14,4 +13,5 @@ public interface CompanyRepository extends JpaRepository<Company, Long> {
     List<Company> findAllByIsActive(Boolean isActive);
 
     Optional<Company> findByIdAndIsActiveTrue(Long companyId);
+    boolean existsByIdAndIsActiveTrue(Long companyId);
 }
