@@ -45,6 +45,7 @@ public class DepartmentService {
         return departmentMapper.toResponse(saved);
     }
 
+    @Transactional
     public List<DepartmentResponse> getDepartmentsByCompany(Long companyId) {
 
         Company company = companyRepository.findById(companyId)
