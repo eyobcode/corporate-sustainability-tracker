@@ -37,6 +37,15 @@ public class GlobalExceptionHandler {
         return ResponseEntity.badRequest().body(errorDto);
     }
 
+
+    @ExceptionHandler(BusinessException.class)
+    public ResponseEntity<ErrorDto> handleBusinessException(BusinessException ex){
+        ErrorDto errorDto = new ErrorDto(ex.getMessage());
+        errorDto.setStatus(400);
+        return ResponseEntity.badRequest().body(errorDto);
+    }
+
+
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ErrorDto> handleValidationError(MethodArgumentNotValidException ex) {
 
