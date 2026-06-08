@@ -100,7 +100,6 @@ public class EmissionService {
 
         return emissionMapper.toResponse(savedEmission);
     }
-
     private boolean checkSubmissionPermission(User user, Department department, Company company) {
         // EMPLOYEE & DEPT_MANAGER → only their own department
         if (user.getRole() == Role.EMPLOYEE || user.getRole() == Role.DEPT_MANAGER) {
@@ -114,7 +113,6 @@ public class EmissionService {
 
         return false;
     }
-
     private boolean isAbnormalValue(BigDecimal co2Amount) {
         final BigDecimal CO2_THRESHOLD = new BigDecimal("10000");
         return co2Amount != null && co2Amount.compareTo(CO2_THRESHOLD) > 0;
