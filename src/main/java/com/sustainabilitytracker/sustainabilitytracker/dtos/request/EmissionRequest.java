@@ -33,9 +33,6 @@ public class EmissionRequest {
     private String notes;
 
     @NotNull
-    private Instant createdAt;
-
-    @NotNull
     private LocalDate recordedAt;
 
 }
