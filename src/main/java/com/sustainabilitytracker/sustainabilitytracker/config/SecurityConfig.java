@@ -44,6 +44,10 @@ public class SecurityConfig {
                                                                             Role.DEPT_MANAGER.name(),
                                                                             Role.SUSTAINABILITY_MANAGER.name()
                                                                           )
+                        .requestMatchers(HttpMethod.PUT, "/emissions/*/submit").hasAnyRole(
+                                Role.EMPLOYEE.name(),
+                                Role.DEPT_MANAGER.name()
+                        )
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
