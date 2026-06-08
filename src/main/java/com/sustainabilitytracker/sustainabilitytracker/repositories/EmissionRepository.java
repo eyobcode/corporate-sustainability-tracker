@@ -8,6 +8,7 @@ import com.sustainabilitytracker.sustainabilitytracker.entities.User;
 import com.sustainabilitytracker.sustainabilitytracker.enums.DataStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
 
+import java.time.Instant;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -21,4 +22,12 @@ public interface EmissionRepository extends JpaRepository<EmissionData, Long> {
     List<EmissionData> findAllByDepartment(Department department);
 
     List<EmissionData> findAllByCompany_Id(Long companyId);
+
+    List<EmissionData> findAllByCompanyAndStatus_Approved(DataStatus status);
+
+
+    List<EmissionData> findAllByCompanyAndStatusAndSubmittedAtBetween(Company company,
+                                                                      DataStatus status,
+                                                                      Instant startDate,
+                                                                      Instant endDate);
 }
