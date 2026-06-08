@@ -10,17 +10,13 @@ import com.sustainabilitytracker.sustainabilitytracker.entities.EmissionData;
 import com.sustainabilitytracker.sustainabilitytracker.entities.User;
 import com.sustainabilitytracker.sustainabilitytracker.enums.DataStatus;
 import com.sustainabilitytracker.sustainabilitytracker.enums.Role;
-import com.sustainabilitytracker.sustainabilitytracker.exceptions.BadRequestException;
-import com.sustainabilitytracker.sustainabilitytracker.exceptions.BusinessException;
-import com.sustainabilitytracker.sustainabilitytracker.exceptions.ResourceNotFoundException;
-import com.sustainabilitytracker.sustainabilitytracker.exceptions.UnauthorizedException;
+import com.sustainabilitytracker.sustainabilitytracker.exceptions.*;
 import com.sustainabilitytracker.sustainabilitytracker.mappers.EmissionMapper;
 import com.sustainabilitytracker.sustainabilitytracker.repositories.CompanyRepository;
 import com.sustainabilitytracker.sustainabilitytracker.repositories.DepartmentRepository;
 import com.sustainabilitytracker.sustainabilitytracker.repositories.EmissionRepository;
 import org.springframework.transaction.annotation.Transactional;
 import lombok.AllArgsConstructor;
-import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
