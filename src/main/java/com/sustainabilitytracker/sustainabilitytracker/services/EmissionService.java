@@ -9,6 +9,7 @@ import com.sustainabilitytracker.sustainabilitytracker.entities.EmissionData;
 import com.sustainabilitytracker.sustainabilitytracker.entities.User;
 import com.sustainabilitytracker.sustainabilitytracker.enums.DataStatus;
 import com.sustainabilitytracker.sustainabilitytracker.enums.Role;
+import com.sustainabilitytracker.sustainabilitytracker.exceptions.BadRequestException;
 import com.sustainabilitytracker.sustainabilitytracker.exceptions.BusinessException;
 import com.sustainabilitytracker.sustainabilitytracker.exceptions.ResourceNotFoundException;
 import com.sustainabilitytracker.sustainabilitytracker.exceptions.UnauthorizedException;
@@ -34,7 +35,7 @@ public class EmissionService {
     private final EmissionRepository emissionRepository;
     private final EmissionMapper emissionMapper;
 
-    public EmissionResponse submitEmission(EmissionRequest request, Long currentUserId) {
+    public EmissionResponse submitEmission(EmissionRequest request) {
 
         // Validate company exists and is active
         Company company = companyRepository.findByIdAndIsActiveTrue(request.getCompanyId())
@@ -143,7 +144,7 @@ public class EmissionService {
     }
 
     @Transactional
-    public EmissionResponse approveEmission(Long emissionId, Long currentUserId) {
+    public EmissionResponse approveEmission(Long emissionId) {
 
         EmissionData emissionData = emissionRepository.findById(emissionId)
                 .orElseThrow(() -> new ResourceNotFoundException("Emission not found with id: " + emissionId));
@@ -197,21 +198,54 @@ public class EmissionService {
         return false;
     }
 
-//    4. rejectEmission(Long emissionId,
-//                      String reason,
-//                      Long currentUserId) → EmissionResponse
-//    BUSINESS LOGIC:
-//    STEP 1: Find emission by id
-//    STEP 2: Check user has permission to reject
-//    STEP 3: Check status is PENDING
-//    STEP 4: Set status = REJECTED
-//    STEP 5: Set rejectionReason = reason
-//    STEP 6: Save changes
-//    STEP 7: Send notification to submitter
-//    with rejection reason
-//    STEP 8: Return updated EmissionResponse
-    public EmissionResponse rejectEmission() {
+    public EmissionResponse rejectEmission(Long emissionId, String reason) {
 
+        EmissionData emissionData = emissionRepository.findById(emissionId)
+                .orElseThrow(() -> new ResourceNotFoundException("Emission not found with id: " + emissionId));
+
+        User currentUser = authService.getCurrentUser();
+
+        if (!checkRejectPermission(currentUser, emissionData)) {
+            throw new AccessDeniedException("You do not have permission to reject this emission data");
+        }
+
+        if (emissionData.getStatus() != DataStatus.PENDING) {
+            throw new BadRequestException("Only PENDING emissions can be rejected. Current status: "
+                    + emissionData.getStatus());
+        }
+
+        emissionData.setStatus(DataStatus.REJECTED);
+        emissionData.setRejectionReason(reason);
+
+        emissionData = emissionRepository.save(emissionData);
+
+
+//        sendRejectionNotification(emissionData);
+
+        return emissionMapper.toResponse(emissionData);
+    }
+    private boolean checkRejectPermission(User approver, EmissionData emissionData) {
+        if (approver == null || emissionData == null) {
+            return false;
+        }
+
+        Role role = approver.getRole();
+
+        // DEPT_MANAGER: can only reject in his own department
+        if (role == Role.DEPT_MANAGER) {
+            return emissionData.getDepartment() != null &&
+                    approver.getDepartment() != null &&
+                    emissionData.getDepartment().getId().equals(approver.getDepartment().getId());
+        }
+
+        // SUSTAINABILITY_MANAGER: can reject any department in his company
+        if (role == Role.SUSTAINABILITY_MANAGER) {
+            return emissionData.getCompany() != null &&
+                    approver.getCompany() != null &&
+                    emissionData.getCompany().getId().equals(approver.getCompany().getId());
+        }
+
+        return role == Role.ADMIN;
     }
 
 }
