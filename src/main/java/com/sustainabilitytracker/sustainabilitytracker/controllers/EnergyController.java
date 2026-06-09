@@ -19,6 +19,7 @@ import java.util.List;
 
 @AllArgsConstructor
 @Controller
+@RequestMapping("/energies")
 public class EnergyController {
 
     private final EnergyService energyService;
