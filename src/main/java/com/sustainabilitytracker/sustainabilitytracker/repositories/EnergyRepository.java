@@ -1,13 +1,18 @@
 package com.sustainabilitytracker.sustainabilitytracker.repositories;
 
+import com.sustainabilitytracker.sustainabilitytracker.entities.Company;
+import com.sustainabilitytracker.sustainabilitytracker.entities.Department;
 import com.sustainabilitytracker.sustainabilitytracker.entities.EnergyData;
+import com.sustainabilitytracker.sustainabilitytracker.entities.User;
 import com.sustainabilitytracker.sustainabilitytracker.enums.DataStatus;
 import com.sustainabilitytracker.sustainabilitytracker.projection.EnergyTotalsProjection;
+import jakarta.validation.constraints.NotNull;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.time.Instant;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -49,4 +54,14 @@ public interface EnergyRepository
             @Param("start") LocalDate start,
             @Param("end") LocalDate end
     );
+
+    List<EnergyData> findAllByCompany_Id(Long companyId);
+
+    List<EnergyData> findAllByDepartment(Department department);
+
+    List<EnergyData> findAllBySubmittedBy(User currentUser);
+
+    boolean existsByDepartmentIdAndRecordedAtAndStatus(Long id, @NotNull(message = "Recorded date is required") LocalDate recordedAt, DataStatus dataStatus);
+
+    List<EnergyData> findAllByCompanyAndStatusAndSubmittedAtBetween(Company company, DataStatus dataStatus, Instant startDate, Instant endDate);
 }
