@@ -41,14 +41,15 @@ public class EnergyService {
 //    private final ScoreService scoreService;
 
     private static final BigDecimal KWH_THRESHOLD = new BigDecimal("100000");
+    private final AuthService authService;
 
 
     @Transactional
-    public EnergyResponse submitEnergy(EnergyRequest request, Long currentUserId) {
+    public EnergyResponse submitEnergy(EnergyRequest request) {
 
         Company company = companyRepository.findById(request.getCompanyId())
                 .orElseThrow(() -> new ResourceNotFoundException("Company not found with id: " + request.getCompanyId()));
-
+        User user = authService.getCurrentUser();
         if (!company.getIsActive()) {
             throw new BadRequestException("Company is not active");
         }
@@ -60,8 +61,8 @@ public class EnergyService {
             throw new BadRequestException("Department does not belong to this company");
         }
 
-        User currentUser = userRepository.findById(currentUserId)
-                .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + currentUserId));
+        User currentUser = userRepository.findById(user.getId())
+                .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + user.getId()));
 
         checkSubmitPermission(currentUser, department, company);
 
@@ -102,12 +103,12 @@ public class EnergyService {
 
 
     @Transactional
-    public EnergyResponse submitForApproval(Long energyId, Long currentUserId) {
+    public EnergyResponse submitForApproval(Long energyId) {
 
         EnergyData energyData = energyRepository.findById(energyId)
                 .orElseThrow(() -> new ResourceNotFoundException("Energy record not found with id: " + energyId));
-
-        if (!energyData.getSubmittedBy().getId().equals(currentUserId)) {
+        User currentUser = authService.getCurrentUser();
+        if (!energyData.getSubmittedBy().getId().equals(currentUser.getId())) {
             throw new UnauthorizedException("You can only submit your own records for approval");
         }
 
@@ -130,13 +131,14 @@ public class EnergyService {
 
 
     @Transactional
-    public EnergyResponse approveEnergy(Long energyId, Long currentUserId) {
+    public EnergyResponse approveEnergy(Long energyId) {
+        User currentUser = authService.getCurrentUser();
 
         EnergyData energyData = energyRepository.findById(energyId)
                 .orElseThrow(() -> new ResourceNotFoundException("Energy record not found with id: " + energyId));
 
-        User approver = userRepository.findById(currentUserId)
-                .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + currentUserId));
+        User approver = userRepository.findById(currentUser.getId())
+                .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + currentUser.getId()));
 
         checkApprovePermission(approver, energyData);
 
@@ -162,13 +164,14 @@ public class EnergyService {
 
 
     @Transactional
-    public EnergyResponse rejectEnergy(Long energyId, String reason, Long currentUserId) {
+    public EnergyResponse rejectEnergy(Long energyId, String reason) {
 
         EnergyData energyData = energyRepository.findById(energyId)
                 .orElseThrow(() -> new ResourceNotFoundException("Energy record not found with id: " + energyId));
+        User currentUser = authService.getCurrentUser();
 
-        User approver = userRepository.findById(currentUserId)
-                .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + currentUserId));
+        User approver = userRepository.findById(currentUser.getId())
+                .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + currentUser.getId()));
 
         checkApprovePermission(approver, energyData);
 
@@ -189,10 +192,11 @@ public class EnergyService {
     }
 
     // GET ENERGY BY COMPANY
-    public List<EnergyResponse> getEnergyByCompany(Long companyId, Long currentUserId) {
+    public List<EnergyResponse> getEnergyByCompany(Long companyId) {
+        User user = authService.getCurrentUser();
 
-        User currentUser = userRepository.findById(currentUserId)
-                .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + currentUserId));
+        User currentUser = userRepository.findById(user.getId())
+                .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + user.getId()));
 
         if (!hasCompanyAccess(currentUser, companyId)) {
             throw new AccessDeniedException("You do not have access to this company's energy data");
@@ -201,7 +205,7 @@ public class EnergyService {
         List<EnergyData> energyList;
 
         if (currentUser.getRole() == Role.EMPLOYEE) {
-            energyList = energyRepository.findBySubmittedBy_Id(currentUserId);
+            energyList = energyRepository.findBySubmittedBy_Id(currentUser.getId());
         }
         else if (currentUser.getRole() == Role.DEPT_MANAGER) {
             energyList = energyRepository.findByDepartmentId(currentUser.getDepartment().getId());
