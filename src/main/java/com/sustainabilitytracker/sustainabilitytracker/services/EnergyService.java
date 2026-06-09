@@ -161,6 +161,33 @@ public class EnergyService {
     }
 
 
+    @Transactional
+    public EnergyResponse rejectEnergy(Long energyId, String reason, Long currentUserId) {
+
+        EnergyData energyData = energyRepository.findById(energyId)
+                .orElseThrow(() -> new ResourceNotFoundException("Energy record not found with id: " + energyId));
+
+        User approver = userRepository.findById(currentUserId)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + currentUserId));
+
+        checkApprovePermission(approver, energyData);
+
+        if (energyData.getStatus() != DataStatus.PENDING) {
+            throw new BadRequestException("Only PENDING records can be rejected");
+        }
+
+        energyData.setStatus(DataStatus.REJECTED);
+        energyData.setRejectionReason(reason);
+
+        EnergyData updated = energyRepository.save(energyData);
+
+//        notificationService.notifyUser(
+//                updated.getSubmittedBy().getId(),
+//                "Your energy record has been REJECTED. Reason: " + reason);
+
+        return energyMapper.toResponse(updated);
+    }
+
 
     private void checkSubmitPermission(User user, Department department, Company company) {
         switch (user.getRole()) {
