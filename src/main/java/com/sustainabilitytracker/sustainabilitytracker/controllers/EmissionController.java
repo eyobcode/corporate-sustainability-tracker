@@ -1,10 +1,9 @@
 package com.sustainabilitytracker.sustainabilitytracker.controllers;
 
 import com.sustainabilitytracker.sustainabilitytracker.dtos.request.EmissionRequest;
-import com.sustainabilitytracker.sustainabilitytracker.dtos.request.RejectEmissionRequest;
+import com.sustainabilitytracker.sustainabilitytracker.dtos.request.RejectRequest;
 import com.sustainabilitytracker.sustainabilitytracker.dtos.response.EmissionResponse;
 import com.sustainabilitytracker.sustainabilitytracker.dtos.response.EmissionSummaryResponse;
-import com.sustainabilitytracker.sustainabilitytracker.entities.EmissionData;
 import com.sustainabilitytracker.sustainabilitytracker.repositories.EmissionRepository;
 import com.sustainabilitytracker.sustainabilitytracker.services.EmissionService;
 import jakarta.validation.Valid;
@@ -49,7 +48,7 @@ public class EmissionController {
 
     @PutMapping("/{emissionId}/reject")
     public ResponseEntity<EmissionResponse> rejectEmission(@PathVariable Long emissionId,
-                                                           @Valid @RequestBody RejectEmissionRequest request) {
+                                                           @Valid @RequestBody RejectRequest request) {
         EmissionResponse emissionResponse = emissionService.rejectEmission(emissionId,request.getReason());
         return ResponseEntity.ok(emissionResponse);
     }
