@@ -39,5 +39,12 @@ public class WaterController {
         return ResponseEntity.ok(response);
     }
 
+    // APPROVE WATER
+    @PutMapping("/{waterId}/approve")
+    public ResponseEntity<WaterResponse> approveWater(@PathVariable Long waterId) {
+        WaterResponse response = waterService.approveWater(waterId);
+        return ResponseEntity.ok(response);
+    }
+
 
 }
