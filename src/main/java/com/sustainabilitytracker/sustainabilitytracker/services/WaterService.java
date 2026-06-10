@@ -137,6 +137,31 @@ public class WaterService {
         return waterMapper.toResponse(updated);
     }
 
+    // REJECT WATER
+    @Transactional
+    public WaterResponse rejectWater(Long waterId, String reason) {
+        WaterData waterData = waterRepository.findById(waterId)
+                .orElseThrow(() -> new ResourceNotFoundException("Water record not found with id: " + waterId));
+
+        User approver = authService.getCurrentUser();
+
+        checkApprovePermission(approver, waterData);
+
+        if (waterData.getStatus() != DataStatus.PENDING) {
+            throw new BadRequestException("Only PENDING records can be rejected");
+        }
+
+        waterData.setStatus(DataStatus.REJECTED);
+        waterData.setRejectionReason(reason);
+
+        WaterData updated = waterRepository.save(waterData);
+
+//        notificationService.notifyUser(updated.getSubmittedBy().getId(),
+//                "Your water record has been REJECTED. Reason: " + reason);
+
+        return waterMapper.toResponse(updated);
+    }
+
 
 
     // PRIVATE HELPERS
@@ -175,7 +200,6 @@ public class WaterService {
                 throw new UnauthorizedException("You do not have permission to approve this record");
         }
     }
-
 
 
 }
