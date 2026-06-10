@@ -11,6 +11,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.util.UriComponentsBuilder;
 
+import java.util.List;
+
 @AllArgsConstructor
 @RestController
 @RequestMapping("")
@@ -55,6 +57,13 @@ public class WaterController {
 
         WaterResponse response = waterService.rejectWater(waterId, request.getReason());
         return ResponseEntity.ok(response);
+    }
+
+    // GET WATER BY COMPANY
+    @GetMapping("/company/{companyId}")
+    public ResponseEntity<List<WaterResponse>> getWaterByCompany(@PathVariable Long companyId) {
+        List<WaterResponse> waterData = waterService.getWaterByCompany(companyId);
+        return ResponseEntity.ok(waterData);
     }
 
 
