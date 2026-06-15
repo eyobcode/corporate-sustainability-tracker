@@ -1,0 +1,31 @@
+package com.sustainabilitytracker.sustainabilitytracker.mappers;
+
+import com.sustainabilitytracker.sustainabilitytracker.dtos.request.WasteRequest;
+import com.sustainabilitytracker.sustainabilitytracker.dtos.response.WasteResponse;
+import com.sustainabilitytracker.sustainabilitytracker.entities.WasteData;
+import org.mapstruct.*;
+
+import java.util.List;
+
+@Mapper(componentModel = "spring")
+public interface WasteMapper {
+
+    @Mapping(target = "company", ignore = true)
+    @Mapping(target = "department", ignore = true)
+    @Mapping(target = "submittedBy", ignore = true)
+    @Mapping(target = "approvedBy", ignore = true)
+    WasteData toEntity(WasteRequest request);
+
+    @Mapping(target = "companyId", source = "company.id")
+    @Mapping(target = "companyName", source = "company.name")
+    @Mapping(target = "departmentId", source = "department.id")
+    @Mapping(target = "departmentName", source = "department.name")
+    @Mapping(target = "submittedByName", source = "submittedBy.fullName")
+    @Mapping(target = "approvedByName", source = "approvedBy.fullName")
+    WasteResponse toResponse(WasteData wasteData);
+
+    List<WasteResponse> toResponseList(List<WasteData> wasteDataList);
+
+    @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
+    void updateEntity(@MappingTarget WasteData wasteData, WasteRequest request);
+}
