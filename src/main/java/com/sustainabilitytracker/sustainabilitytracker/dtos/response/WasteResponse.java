@@ -9,9 +9,12 @@ import java.time.LocalDate;
 @Data
 public class WasteResponse {
     private Long id;
+    private Long companyId;
     private String companyName;
     private String submittedByName;
     private String approvedByName;
+    private Long departmentId;
+    private String departmentName;
 
     private BigDecimal totalKg;
     private BigDecimal recycledKg;
