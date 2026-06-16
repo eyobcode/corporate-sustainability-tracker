@@ -74,6 +74,24 @@ public class SecurityConfig {
                                 Role.SUSTAINABILITY_MANAGER.name(),
                                 Role.DEPT_MANAGER.name()
                         )
+                        // waste
+                        .requestMatchers(HttpMethod.POST, "/waste").hasAnyRole(
+                                Role.EMPLOYEE.name(),
+                                Role.DEPT_MANAGER.name(),
+                                Role.SUSTAINABILITY_MANAGER.name()
+                        )
+                        .requestMatchers(HttpMethod.PUT, "/waste/*/submit").hasAnyRole(
+                                Role.EMPLOYEE.name(),
+                                Role.DEPT_MANAGER.name()
+                        )
+                        .requestMatchers(HttpMethod.PUT, "/waste/*/aprove").hasAnyRole(
+                                Role.SUSTAINABILITY_MANAGER.name(),
+                                Role.DEPT_MANAGER.name()
+                        )
+                        .requestMatchers(HttpMethod.PUT, "/waste/*/reject").hasAnyRole(
+                                Role.SUSTAINABILITY_MANAGER.name(),
+                                Role.DEPT_MANAGER.name()
+                        )
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
