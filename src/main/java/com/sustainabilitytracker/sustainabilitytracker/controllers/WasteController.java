@@ -21,4 +21,48 @@ import java.util.List;
 @RestController
 @RequestMapping("/waste")
 public class WasteController {
-}
+
+    private final WasteService wasteService;
+    private final WasteRepository wasteRepository;
+
+    @PostMapping
+    public ResponseEntity<WasteResponse> submitWaste(
+            @Valid @RequestBody WasteRequest wasteRequest,
+            UriComponentsBuilder uriBuilder) {
+
+        WasteResponse wasteResponse = wasteService.submitWaste(wasteRequest);
+
+        var uri = uriBuilder.path("/waste/{wasteId}")
+                .buildAndExpand(wasteResponse.getId())
+                .toUri();
+
+        return ResponseEntity.created(uri).body(wasteResponse);
+    }
+
+    @PutMapping("/{wasteId}/submit")
+    public ResponseEntity<WasteResponse> submitForApproval(@PathVariable Long wasteId) {
+        WasteResponse response = wasteService.submitForApproval(wasteId);
+        return ResponseEntity.ok(response);
+    }
+
+
+    @PutMapping("/{wasteId}/approve")
+    public ResponseEntity<WasteResponse> approveWaste(@PathVariable Long wasteId) {
+        WasteResponse response = wasteService.approveWaste(wasteId);
+        return ResponseEntity.ok(response);
+    }
+
+    @PutMapping("/{wasteId}/reject")
+    public ResponseEntity<WasteResponse> rejectWaste(
+            @PathVariable Long wasteId,
+            @Valid @RequestBody RejectRequest request) {
+
+        WasteResponse response = wasteService.rejectWaste(wasteId, request.getReason());
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/company/{companyId}")
+    public ResponseEntity<List<WasteResponse>> getWasteByCompany(@PathVariable Long companyId) {
+        List<WasteResponse> wasteData = wasteService.getWasteByCompany(companyId);
+        return ResponseEntity.ok(wasteData);
+    }
