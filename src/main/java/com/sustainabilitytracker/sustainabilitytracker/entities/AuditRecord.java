@@ -2,8 +2,7 @@ package com.sustainabilitytracker.sustainabilitytracker.entities;
 
 import com.sustainabilitytracker.sustainabilitytracker.enums.AuditAction;
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 import org.hibernate.annotations.ColumnDefault;
 import org.hibernate.annotations.CreationTimestamp;
 
@@ -13,6 +12,9 @@ import java.time.Instant;
 @Setter
 @Entity
 @Table(name = "audit_records")
+@AllArgsConstructor
+@NoArgsConstructor
+@Builder
 public class AuditRecord {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
