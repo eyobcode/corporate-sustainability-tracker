@@ -1,5 +1,6 @@
 package com.sustainabilitytracker.sustainabilitytracker.entities;
 
+import com.sustainabilitytracker.sustainabilitytracker.enums.PeriodType;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -39,7 +40,7 @@ public class SustainabilityScore {
     private String grade;
 
     @Column(name = "period_type")
-    private String periodType;
+    private PeriodType periodType;
 
     @Column(name = "period_start")
     private LocalDate periodStart;
