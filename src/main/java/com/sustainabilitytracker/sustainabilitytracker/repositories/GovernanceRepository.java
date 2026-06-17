@@ -7,6 +7,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -28,4 +29,10 @@ public interface GovernanceRepository extends JpaRepository<GovernanceData, Long
             @Param("companyId") Long companyId,
             @Param("start") LocalDate start,
             @Param("end") LocalDate end);
+
+    BigDecimal getAverageComplianceScore(Long companyId, LocalDate start, LocalDate end);
+
+    int getTotalViolations(Long companyId, LocalDate start, LocalDate end);
+
+    boolean hasEthicsTraining(Long companyId, LocalDate start, LocalDate end);
 }
