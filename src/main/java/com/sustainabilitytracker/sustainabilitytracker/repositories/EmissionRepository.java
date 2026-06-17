@@ -51,4 +51,6 @@ public interface EmissionRepository extends JpaRepository<EmissionData, Long> {
     BigDecimal getTotalCo2ByCompanyAndPeriod(Long companyId, LocalDate start, LocalDate end);
 
     BigDecimal getTotalCo2(Long companyId, LocalDate start, LocalDate end);
+
+    Object countByCompanyIdAndStatus(Long companyId, DataStatus dataStatus);
 }
