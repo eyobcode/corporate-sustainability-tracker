@@ -40,6 +40,7 @@ public class SustainabilityScore {
     private String grade;
 
     @Column(name = "period_type")
+    @Enumerated(EnumType.STRING)
     private PeriodType periodType;
 
     @Column(name = "period_start")
