@@ -128,6 +128,37 @@ public class SecurityConfig {
                                 Role.SUSTAINABILITY_MANAGER.name(),
                                 Role.DEPT_MANAGER.name()
                         )
+                        // Score Calculation
+                                .requestMatchers(HttpMethod.POST, "/scores/calculate").hasAnyRole(
+                                        Role.SUSTAINABILITY_MANAGER.name(),
+                                        Role.DEPT_MANAGER.name()
+                                )
+                                .requestMatchers(HttpMethod.GET, "/scores/latest/*").hasAnyRole(
+                                        Role.ADMIN.name(),
+                                        Role.SUSTAINABILITY_MANAGER.name(),
+                                        Role.DEPT_MANAGER.name()
+                                )
+                                .requestMatchers(HttpMethod.GET, "/scores/history/*").hasAnyRole(
+                                        Role.ADMIN.name(),
+                                        Role.SUSTAINABILITY_MANAGER.name(),
+                                        Role.DEPT_MANAGER.name()
+                                )
+
+                        // Reports
+                                .requestMatchers(HttpMethod.POST, "/reports").hasAnyRole(
+                                        Role.SUSTAINABILITY_MANAGER.name(),
+                                        Role.DEPT_MANAGER.name()
+                                )
+                                .requestMatchers(HttpMethod.GET, "/reports/company/*").hasAnyRole(
+                                        Role.ADMIN.name(),
+                                        Role.SUSTAINABILITY_MANAGER.name(),
+                                        Role.DEPT_MANAGER.name()
+                                )
+                                .requestMatchers(HttpMethod.GET, "/reports/*/download").hasAnyRole(
+                                        Role.ADMIN.name(),
+                                        Role.SUSTAINABILITY_MANAGER.name(),
+                                        Role.DEPT_MANAGER.name()
+                                )
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
