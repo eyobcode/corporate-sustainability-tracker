@@ -42,4 +42,6 @@ public interface WaterRepository extends JpaRepository<WaterData, Long> {
     BigDecimal getTotalRecycledLiters(Long companyId, LocalDate start, LocalDate end);
 
     BigDecimal getTotalConsumedLiters(Long companyId, LocalDate start, LocalDate end);
+
+    Object countByCompanyIdAndStatus(Long companyId, DataStatus dataStatus);
 }
