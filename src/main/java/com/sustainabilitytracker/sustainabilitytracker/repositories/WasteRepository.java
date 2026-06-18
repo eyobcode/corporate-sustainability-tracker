@@ -6,43 +6,78 @@ import com.sustainabilitytracker.sustainabilitytracker.projection.WasteTotalsPro
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+import org.springframework.stereotype.Repository;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 
+@Repository
 public interface WasteRepository extends JpaRepository<WasteData, Long> {
 
     boolean existsByDepartmentIdAndRecordedAtAndStatus(
-            Long departmentId, LocalDate recordedAt, DataStatus status);
+            Long departmentId,
+            LocalDate recordedAt,
+            DataStatus status
+    );
 
     List<WasteData> findByCompanyId(Long companyId);
     List<WasteData> findBySubmittedBy_Id(Long userId);
     List<WasteData> findByDepartmentId(Long departmentId);
 
-
-    @Query("SELECT " +
-            "SUM(w.totalKg) as totalKg, " +
-            "SUM(w.recycledKg) as totalRecycledKg, " +
-            "SUM(w.hazardousKg) as totalHazardousKg, " +
-            "COUNT(w.id) as recordCount, " +
-            "COALESCE(SUM(w.recycledKg) * 100.0 / NULLIF(SUM(w.totalKg), 0), 0) as recyclingRate " +
-            "FROM WasteData w " +
-            "WHERE w.company.id = :companyId " +
-            "AND w.status = 'APPROVED' " +
-            "AND w.recordedAt BETWEEN :start AND :end")
+    @Query("""
+            SELECT
+                SUM(w.totalKg)      AS totalKg,
+                SUM(w.recycledKg)   AS totalRecycledKg,
+                SUM(w.hazardousKg)  AS totalHazardousKg,
+                COUNT(w.id)         AS recordCount,
+                COALESCE(SUM(w.recycledKg) * 100.0
+                    / NULLIF(SUM(w.totalKg), 0), 0) AS recyclingRate
+            FROM WasteData w
+            WHERE w.company.id = :companyId
+            AND w.status = 'APPROVED'
+            AND w.recordedAt BETWEEN :start AND :end
+            """)
     WasteTotalsProjection getTotalsByCompanyAndPeriod(
             @Param("companyId") Long companyId,
             @Param("start") LocalDate start,
-            @Param("end") LocalDate end);
+            @Param("end") LocalDate end
+    );
 
-    BigDecimal getTotalKgByCompanyAndPeriod(Long companyId, LocalDate start, LocalDate end);
+    @Query("""
+            SELECT COALESCE(SUM(w.totalKg), 0)
+            FROM WasteData w
+            WHERE w.company.id = :companyId
+            AND w.recordedAt BETWEEN :start AND :end
+            AND w.status = 'APPROVED'
+            """)
+    BigDecimal getTotalKg(
+            @Param("companyId") Long companyId,
+            @Param("start") LocalDate start,
+            @Param("end") LocalDate end
+    );
 
-    BigDecimal getTotalRecycledKgByCompanyAndPeriod(Long companyId, LocalDate start, LocalDate end);
+    @Query("""
+            SELECT COALESCE(SUM(w.recycledKg), 0)
+            FROM WasteData w
+            WHERE w.company.id = :companyId
+            AND w.recordedAt BETWEEN :start AND :end
+            AND w.status = 'APPROVED'
+            """)
+    BigDecimal getTotalRecycledKg(
+            @Param("companyId") Long companyId,
+            @Param("start") LocalDate start,
+            @Param("end") LocalDate end
+    );
 
-    BigDecimal getTotalKg(Long companyId, LocalDate start, LocalDate end);
-
-    BigDecimal getTotalRecycledKg(Long companyId, LocalDate start, LocalDate end);
-
-    Object countByCompanyIdAndStatus(Long companyId, DataStatus dataStatus);
+    @Query("""
+            SELECT COUNT(w)
+            FROM WasteData w
+            WHERE w.company.id = :companyId
+            AND w.status = :status
+            """)
+    int countByCompanyIdAndStatus(
+            @Param("companyId") Long companyId,
+            @Param("status") DataStatus status
+    );
 }
