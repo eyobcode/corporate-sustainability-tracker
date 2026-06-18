@@ -22,7 +22,6 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/auth")
 public class AuthController {
 
-    private final AuthenticationManager authenticationManager;
     private final UserRepository userRepository;
     private final JwtTokenProvider jwtTokenProvider;
     private final JwtProperties jwtProperties;
@@ -32,25 +31,7 @@ public class AuthController {
     public ResponseEntity<JwtResponse> login(
             @RequestBody LoginRequest request,
             HttpServletResponse response){
-        authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(
-                        request.getEmail(),
-                        request.getPassword()
-                )
-        );
-        var user = userRepository.findByEmail(request.getEmail()).orElseThrow();
-
-        var accessToken = jwtTokenProvider.generateAccessToken(user);
-        var refreshToken = jwtTokenProvider.generateRefreshToken(user);
-
-        var cookie = new Cookie("refreshToken", refreshToken);
-        cookie.setHttpOnly(true);
-        cookie.setPath("/auth/refresh");
-        cookie.setMaxAge(jwtProperties.getRefreshTokenExpiration());
-        cookie.setSecure(true);
-        response.addCookie(cookie);
-
-        return ResponseEntity.ok(new JwtResponse(accessToken));
+        return ResponseEntity.ok(authService.login(request,response));
     }
 
     @PostMapping("/change-password")
