@@ -2,6 +2,7 @@ package com.sustainabilitytracker.sustainabilitytracker.services;
 
 import com.sustainabilitytracker.sustainabilitytracker.entities.Company;
 import com.sustainabilitytracker.sustainabilitytracker.entities.SustainabilityScore;
+import com.sustainabilitytracker.sustainabilitytracker.enums.DataStatus;
 import com.sustainabilitytracker.sustainabilitytracker.enums.PeriodType;
 import com.sustainabilitytracker.sustainabilitytracker.exceptions.ResourceNotFoundException;
 import com.sustainabilitytracker.sustainabilitytracker.repositories.*;
@@ -141,7 +142,7 @@ public class ScoreCalculationService {
         return Math.max(0.0, Math.min(100.0, score));
     }
 
-    private String determineGrade(double score) {
+    public String determineGrade(double score) {
         if (score >= 90) return "A";
         if (score >= 75) return "B";
         if (score >= 60) return "C";
