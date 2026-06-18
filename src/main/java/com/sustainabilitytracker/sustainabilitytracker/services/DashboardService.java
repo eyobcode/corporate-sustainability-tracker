@@ -118,11 +118,11 @@ public class DashboardService {
     }
 
     private int getPendingApprovalsCount(Long companyId) {
-        int pendingEmission = (int) emissionRepository.countByCompanyIdAndStatus(companyId, DataStatus.PENDING);
-        int pendingEnergy = (int) energyRepository.countByCompanyIdAndStatus(companyId, DataStatus.PENDING);
-        int pendingWater = (int) waterRepository.countByCompanyIdAndStatus(companyId, DataStatus.PENDING);
-        int pendingWaste = (int) wasteRepository.countByCompanyIdAndStatus(companyId, DataStatus.PENDING);
-        int pendingSocial = (int) socialRepository.countByCompanyIdAndStatus(companyId, DataStatus.PENDING);
+        int pendingEmission = emissionRepository.countByCompanyIdAndStatus(companyId, DataStatus.PENDING);
+        int pendingEnergy = energyRepository.countByCompanyIdAndStatus(companyId, DataStatus.PENDING);
+        int pendingWater = waterRepository.countByCompanyIdAndStatus(companyId, DataStatus.PENDING);
+        int pendingWaste = wasteRepository.countByCompanyIdAndStatus(companyId, DataStatus.PENDING);
+        int pendingSocial = socialRepository.countByCompanyIdAndStatus(companyId, DataStatus.PENDING);
 
         return pendingEmission + pendingEnergy + pendingWater + pendingWaste + pendingSocial;
     }
