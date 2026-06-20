@@ -24,7 +24,9 @@ public class Department {
     @JoinColumn(name = "company_id")
     private Company company;
 
-    @OneToMany(mappedBy = "department")
+    @OneToMany(mappedBy = "department",
+            cascade = CascadeType.MERGE,
+            fetch = FetchType.LAZY)
     private List<User> users = new ArrayList<>();
 
     @Column(name = "name")
