@@ -15,7 +15,7 @@ public interface ReportRepository extends JpaRepository<EsgReport, Long> {
 
     List<EsgReport> findByAuditStatus(AuditStatus status);
 
-    Object countByCompanyIdAndAuditStatus(Long companyId, AuditStatus auditStatus);
+    int countByCompanyIdAndAuditStatus(Long companyId, AuditStatus auditStatus);
 
-    Object countByAuditStatus(AuditStatus auditStatus);
+    int countByAuditStatus(AuditStatus auditStatus);
 }
