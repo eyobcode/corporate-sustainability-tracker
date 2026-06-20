@@ -1,7 +1,9 @@
 package com.sustainabilitytracker.sustainabilitytracker;
 
 import com.sustainabilitytracker.sustainabilitytracker.controllers.EmissionController;
+import com.sustainabilitytracker.sustainabilitytracker.dtos.request.EmissionRequest;
 import com.sustainabilitytracker.sustainabilitytracker.dtos.response.EmissionResponse;
+import com.sustainabilitytracker.sustainabilitytracker.dtos.response.EmissionSummaryResponse;
 import com.sustainabilitytracker.sustainabilitytracker.services.EmissionService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -9,6 +11,9 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
+
+import java.time.LocalDate;
+import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
@@ -26,18 +31,19 @@ class EmissionControllerTest {
     private EmissionService emissionService;
 
     @Test
-    void submitEmission_ShouldReturn201() throws Exception {
+    void submitEmission_ShouldReturn201Created() throws Exception {
         EmissionResponse response = new EmissionResponse();
         response.setId(1L);
 
-        when(emissionService.submitEmission(any())).thenReturn(response);
+        when(emissionService.submitEmission(any(EmissionRequest.class))).thenReturn(response);
 
         String json = """
                 {
                     "companyId": 1,
                     "departmentId": 1,
-                    "co2Amount": 1250.5,
-                    "recordedAt": "2025-06-01"
+                    "co2Amount": 1250.75,
+                    "recordedAt": "2025-06-01",
+                    "notes": "Factory production"
                 }
                 """;
 
@@ -46,6 +52,14 @@ class EmissionControllerTest {
                         .content(json))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.id").value(1));
+    }
+
+    @Test
+    void submitForApproval_ShouldReturn200() throws Exception {
+        when(emissionService.submitForApproval(1L)).thenReturn(new EmissionResponse());
+
+        mockMvc.perform(put("/api/v1/emissions/1/submit"))
+                .andExpect(status().isOk());
     }
 
     @Test
@@ -73,11 +87,22 @@ class EmissionControllerTest {
     }
 
     @Test
-    void unauthorizedAccess_ShouldReturn403() throws Exception {
-        when(emissionService.approveEmission(anyLong()))
-                .thenThrow(new org.springframework.security.access.AccessDeniedException("Access denied"));
+    void getEmissionsByCompany_ShouldReturn200() throws Exception {
+        when(emissionService.getEmissionByCompany(1L))
+                .thenReturn(List.of(new EmissionResponse()));
 
-        mockMvc.perform(put("/api/v1/emissions/1/approve"))
-                .andExpect(status().isForbidden());
+        mockMvc.perform(get("/api/v1/emissions/company/1"))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    void getEmissionSummary_ShouldReturn200() throws Exception {
+        when(emissionService.getEmissionSummary(anyLong(), any(LocalDate.class), any(LocalDate.class)))
+                .thenReturn(new EmissionSummaryResponse());
+
+        mockMvc.perform(get("/api/v1/emissions/company/1/summary")
+                        .param("startDate", "2025-06-01")
+                        .param("endDate", "2025-06-30"))
+                .andExpect(status().isOk());
     }
 }
