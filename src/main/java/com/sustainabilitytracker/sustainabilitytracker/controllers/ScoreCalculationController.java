@@ -11,7 +11,7 @@ import java.time.LocalDate;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/v1/scores")
+@RequestMapping("/scores")
 @RequiredArgsConstructor
 public class ScoreCalculationController {
 
