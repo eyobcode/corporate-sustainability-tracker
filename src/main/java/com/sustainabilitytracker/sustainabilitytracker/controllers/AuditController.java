@@ -24,12 +24,12 @@ public class AuditController {
         return ResponseEntity.ok(reports);
     }
 
-    @PutMapping("/reports/{reportId}/review")
+    @PostMapping("/reports/{reportId}/review")
     public ResponseEntity<AuditResponse> reviewReport(
             @PathVariable Long reportId,
             @Valid @RequestBody AuditRequest request) {
-
-        AuditResponse response = auditService.reviewReport(reportId, request);
+        AuditResponse response = auditService
+                .reviewReport(reportId, request);
         return ResponseEntity.ok(response);
     }
 
