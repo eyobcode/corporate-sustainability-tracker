@@ -20,4 +20,6 @@ public interface CompanyRepository extends JpaRepository<Company, Long> {
 
     @Query("SELECT c.co2Target FROM Company c WHERE c.id = :id")
     BigDecimal getCo2Target(@Param("id") Long id);
+
+    Long countByIsActiveTrue();
 }
