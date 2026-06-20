@@ -1,5 +1,6 @@
 package com.sustainabilitytracker.sustainabilitytracker.services;
 
+import com.sustainabilitytracker.sustainabilitytracker.config.ReportProperties;
 import com.sustainabilitytracker.sustainabilitytracker.dtos.request.ReportRequest;
 import com.sustainabilitytracker.sustainabilitytracker.dtos.response.ReportResponse;
 import com.sustainabilitytracker.sustainabilitytracker.entities.Company;
@@ -11,11 +12,13 @@ import com.sustainabilitytracker.sustainabilitytracker.enums.PeriodType;
 import com.sustainabilitytracker.sustainabilitytracker.enums.ReportType;
 import com.sustainabilitytracker.sustainabilitytracker.enums.Role;
 import com.sustainabilitytracker.sustainabilitytracker.exceptions.AccessDeniedException;
+import com.sustainabilitytracker.sustainabilitytracker.exceptions.BadRequestException;
 import com.sustainabilitytracker.sustainabilitytracker.exceptions.ResourceNotFoundException;
 import com.sustainabilitytracker.sustainabilitytracker.mappers.ReportMapper;
 import com.sustainabilitytracker.sustainabilitytracker.repositories.CompanyRepository;
 import com.sustainabilitytracker.sustainabilitytracker.repositories.ReportRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -23,6 +26,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.util.List;
@@ -37,8 +41,7 @@ public class ReportService {
     private final AuthService authService;
     private final ScoreCalculationService scoreCalculationService;
     private final ReportMapper reportMapper;
-
-    private final String reportStoragePath = "uploads/reports/";
+    private final ReportProperties reportProperties;
 
     @Transactional
     public ReportResponse generateReport(ReportRequest request) {
@@ -55,13 +58,15 @@ public class ReportService {
         LocalDate start = request.getPeriodStart();
         LocalDate end = request.getPeriodEnd();
 
+        validatePeriod(start, end);
+
         // Calculate latest score
         SustainabilityScore score = scoreCalculationService
                 .calculateAndSaveScore(company.getId(), start, end, PeriodType.MONTHLY);
 
         // Generate file
         String fileName = generateFileName(company, start, end, request.getFileFormat());
-        String filePath = reportStoragePath + fileName;
+        String filePath = reportProperties.getStoragePath() + fileName;
 
         byte[] fileBytes = generateReportFile(company, start, end, request.getFileFormat());
         saveFileToStorage(fileBytes, filePath);
@@ -85,11 +90,17 @@ public class ReportService {
         return reportMapper.toResponse(savedReport);
     }
 
+    @Transactional(readOnly = true)
     public List<ReportResponse> getReportsByCompany(Long companyId) {
+
         User currentUser = authService.getCurrentUser();
 
         if (!hasAccessToCompany(currentUser, companyId)) {
             throw new AccessDeniedException("You do not have access to this company's reports");
+        }
+
+        if (!companyRepository.existsById(companyId)) {
+            throw new ResourceNotFoundException("Company not found with id: " + companyId);
         }
 
         List<EsgReport> reports = reportRepository.findByCompanyIdOrderByCreatedAtDesc(companyId);
@@ -97,7 +108,9 @@ public class ReportService {
         return reportMapper.toResponseList(reports);
     }
 
+    @Transactional(readOnly = true)
     public byte[] downloadReport(Long reportId) {
+
         EsgReport report = reportRepository.findById(reportId)
                 .orElseThrow(() -> new ResourceNotFoundException("Report not found with id: " + reportId));
 
@@ -110,10 +123,23 @@ public class ReportService {
         return readFileFromStorage(report.getFilePath());
     }
 
+    // PRIVATE HELPERS
 
     private boolean hasAccessToCompany(User user, Long companyId) {
         if (user.getRole() == Role.ADMIN || user.getRole() == Role.AUDITOR) return true;
         return user.getCompany() != null && user.getCompany().getId().equals(companyId);
+    }
+
+    private void validatePeriod(LocalDate start, LocalDate end) {
+        if (start == null || end == null) {
+            throw new BadRequestException("Period start and end dates are required");
+        }
+        if (end.isBefore(start)) {
+            throw new BadRequestException("Period end date cannot be before start date");
+        }
+        if (start.isAfter(LocalDate.now())) {
+            throw new BadRequestException("Cannot generate report for future period");
+        }
     }
 
     private String generateFileName(Company company, LocalDate start, LocalDate end, String format) {
@@ -123,7 +149,11 @@ public class ReportService {
     }
 
     private byte[] generateReportFile(Company company, LocalDate start, LocalDate end, String format) {
-        // TODO: Replace with real PDF/Excel generation (iText or Apache POI)
+        // TODO: Implement real PDF/Excel generation later (iText or Apache POI)
+        if ("EXCEL".equalsIgnoreCase(format)) {
+            throw new UnsupportedOperationException("Excel report generation not implemented yet");
+        }
+        // Default to plain text for now
         String content = "ESG Sustainability Report\n" +
                 "Company: " + company.getName() + "\n" +
                 "Period: " + start + " to " + end + "\n" +
@@ -133,20 +163,21 @@ public class ReportService {
 
     private void saveFileToStorage(byte[] bytes, String filePath) {
         try {
-            File file = new File(filePath);
-            file.getParentFile().mkdirs();
-            Files.write(file.toPath(), bytes);
+            Path path = Path.of(filePath);
+            Files.createDirectories(path.getParent());
+            Files.write(path, bytes);
+            log.info("Report saved successfully: {}", filePath);
         } catch (IOException e) {
-            log.error("Failed to save report file", e);
+            log.error("Failed to save report file: {}", filePath, e);
             throw new RuntimeException("Failed to save report file", e);
         }
     }
 
     private byte[] readFileFromStorage(String filePath) {
         try {
-            return Files.readAllBytes(new File(filePath).toPath());
+            return Files.readAllBytes(Path.of(filePath));
         } catch (IOException e) {
-            log.error("Failed to read report file", e);
+            log.error("Failed to read report file: {}", filePath, e);
             throw new RuntimeException("Failed to read report file", e);
         }
     }
