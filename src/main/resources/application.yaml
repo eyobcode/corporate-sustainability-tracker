@@ -22,7 +22,9 @@ spring:
     secret: thisIsMySecretKeyAndItShouldBeLongEnough123456
     accessTokenExpiration: 604800 # 900 # 15m
     refreshTokenExpiration: 604800 # 7d
-
+app:
+  report:
+    storage-path: uploads/reports/
 server:
   servlet:
     context-path: /api/v1
