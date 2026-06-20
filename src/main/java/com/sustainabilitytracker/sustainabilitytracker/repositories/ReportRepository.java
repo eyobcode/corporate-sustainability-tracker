@@ -3,10 +3,12 @@ package com.sustainabilitytracker.sustainabilitytracker.repositories;
 import com.sustainabilitytracker.sustainabilitytracker.entities.EsgReport;
 import com.sustainabilitytracker.sustainabilitytracker.enums.AuditStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
 
 import java.util.List;
 import java.util.Optional;
 
+@Repository
 public interface ReportRepository extends JpaRepository<EsgReport, Long> {
 
     List<EsgReport> findByCompanyIdOrderByCreatedAtDesc(Long companyId);
@@ -17,7 +19,5 @@ public interface ReportRepository extends JpaRepository<EsgReport, Long> {
 
     int countByCompanyIdAndAuditStatus(Long companyId, AuditStatus auditStatus);
 
-    int countByAuditStatus(AuditStatus auditStatus);
-
-    EsgReport getEsgReportById(Long id);
+    long countByAuditStatus(AuditStatus auditStatus);
 }
