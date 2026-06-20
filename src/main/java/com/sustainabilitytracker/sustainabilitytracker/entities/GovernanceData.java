@@ -53,6 +53,7 @@ public class GovernanceData {
 
     @ColumnDefault("'DRAFT'")
     @Column(name = "status")
+    @Enumerated(EnumType.STRING)
     private DataStatus status;
 
     @Lob
