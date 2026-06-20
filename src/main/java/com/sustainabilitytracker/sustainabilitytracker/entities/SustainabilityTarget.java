@@ -1,5 +1,7 @@
 package com.sustainabilitytracker.sustainabilitytracker.entities;
 
+import com.sustainabilitytracker.sustainabilitytracker.enums.Category;
+import com.sustainabilitytracker.sustainabilitytracker.enums.PeriodType;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -32,7 +34,8 @@ public class SustainabilityTarget {
     private User createdBy;
 
     @Column(name = "category")
-    private String category;
+    @Enumerated(EnumType.STRING)
+    private Category category;
 
     @Column(name = "metric_type")
     private String metricType;
@@ -44,7 +47,8 @@ public class SustainabilityTarget {
     private String unit;
 
     @Column(name = "period_type")
-    private String periodType;
+    @Enumerated(EnumType.STRING)
+    private PeriodType periodType;
 
     @Column(name = "start_date")
     private LocalDate startDate;
