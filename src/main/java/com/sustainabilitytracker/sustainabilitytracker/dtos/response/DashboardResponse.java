@@ -14,8 +14,8 @@ public class DashboardResponse {
 
     private Long companyId;
     private String companyName;
-    private SustainabilityScore latestScore;
-    private List<SustainabilityScore> scoreHistory;
+    private ScoreResponse latestScore;
+    private List<ScoreResponse> scoreHistory;
 
     // Key Metrics
     private BigDecimal totalCo2;
