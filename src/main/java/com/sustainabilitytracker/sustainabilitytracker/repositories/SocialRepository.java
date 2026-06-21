@@ -15,23 +15,29 @@ import java.util.List;
 @Repository
 public interface SocialRepository extends JpaRepository<SocialData, Long> {
 
-    boolean existsByDepartmentIdAndRecordedAtAndStatus(
-            Long departmentId,
-            LocalDate recordedAt,
-            DataStatus status
-    );
+    boolean existsByDepartmentIdAndRecordedAtAndStatus(Long departmentId, LocalDate recordedAt, DataStatus status);
 
     List<SocialData> findByCompanyId(Long companyId);
-    List<SocialData> findBySubmittedBy_Id(Long userId);
+
+    List<SocialData> findBySubmittedById(Long userId);
+
     List<SocialData> findByDepartmentId(Long departmentId);
 
+    int countByCompanyIdAndStatus(Long companyId, DataStatus status);
+
     @Query("""
-        SELECT COUNT(s.id) AS recordCount
-        FROM SocialData s
-        WHERE s.company.id = :companyId
-          AND s.status = com.sustainabilitytracker.sustainabilitytracker.enums.DataStatus.APPROVED
-          AND s.recordedAt BETWEEN :start AND :end
-    """)
+            SELECT
+                COUNT(s.id)                                AS recordCount,
+                COALESCE(SUM(s.totalWorkers), 0)           AS totalWorkers,
+                COALESCE(SUM(s.femaleWorkers), 0)          AS totalFemaleWorkers,
+                COALESCE(SUM(s.safetyIncidents), 0)        AS totalSafetyIncidents,
+                COALESCE(AVG(s.trainingHours), 0)          AS avgTrainingHours,
+                COALESCE(AVG(s.satisfactionScore), 0)      AS avgSatisfactionScore
+            FROM SocialData s
+            WHERE s.company.id = :companyId
+            AND s.status = 'APPROVED'
+            AND s.recordedAt BETWEEN :start AND :end
+            """)
     SocialTotalsProjection getTotalsByCompanyAndPeriod(
             @Param("companyId") Long companyId,
             @Param("start") LocalDate start,
@@ -39,12 +45,12 @@ public interface SocialRepository extends JpaRepository<SocialData, Long> {
     );
 
     @Query("""
-        SELECT COALESCE(SUM(s.safetyIncidents), 0)
-        FROM SocialData s
-        WHERE s.company.id = :companyId
-          AND s.recordedAt BETWEEN :start AND :end
-          AND s.status = com.sustainabilitytracker.sustainabilitytracker.enums.DataStatus.APPROVED
-    """)
+            SELECT COALESCE(SUM(s.safetyIncidents), 0)
+            FROM SocialData s
+            WHERE s.company.id = :companyId
+            AND s.recordedAt BETWEEN :start AND :end
+            AND s.status = 'APPROVED'
+            """)
     int getTotalSafetyIncidents(
             @Param("companyId") Long companyId,
             @Param("start") LocalDate start,
@@ -59,7 +65,7 @@ public interface SocialRepository extends JpaRepository<SocialData, Long> {
             FROM SocialData s
             WHERE s.company.id = :companyId
             AND s.recordedAt BETWEEN :start AND :end
-            AND s.status = com.sustainabilitytracker.sustainabilitytracker.enums.DataStatus.APPROVED
+            AND s.status = 'APPROVED'
             """)
     double getAverageFemaleRatio(
             @Param("companyId") Long companyId,
@@ -68,12 +74,12 @@ public interface SocialRepository extends JpaRepository<SocialData, Long> {
     );
 
     @Query("""
-        SELECT COALESCE(AVG(s.trainingHours), 0)
-        FROM SocialData s
-        WHERE s.company.id = :companyId
-          AND s.recordedAt BETWEEN :start AND :end
-          AND s.status = com.sustainabilitytracker.sustainabilitytracker.enums.DataStatus.APPROVED
-    """)
+            SELECT COALESCE(AVG(s.trainingHours), 0)
+            FROM SocialData s
+            WHERE s.company.id = :companyId
+            AND s.recordedAt BETWEEN :start AND :end
+            AND s.status = 'APPROVED'
+            """)
     BigDecimal getAverageTrainingHours(
             @Param("companyId") Long companyId,
             @Param("start") LocalDate start,
@@ -85,22 +91,11 @@ public interface SocialRepository extends JpaRepository<SocialData, Long> {
             FROM SocialData s
             WHERE s.company.id = :companyId
             AND s.recordedAt BETWEEN :start AND :end
-            AND s.status = com.sustainabilitytracker.sustainabilitytracker.enums.DataStatus.APPROVED
+            AND s.status = 'APPROVED'
             """)
     BigDecimal getAverageSatisfactionScore(
             @Param("companyId") Long companyId,
             @Param("start") LocalDate start,
             @Param("end") LocalDate end
-    );
-
-    @Query("""
-            SELECT COUNT(s)
-            FROM SocialData s
-            WHERE s.company.id = :companyId
-            AND s.status = :status
-            """)
-    int countByCompanyIdAndStatus(
-            @Param("companyId") Long companyId,
-            @Param("status") DataStatus status
     );
 }
