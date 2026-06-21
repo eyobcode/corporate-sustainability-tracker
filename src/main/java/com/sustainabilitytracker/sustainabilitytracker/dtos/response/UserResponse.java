@@ -2,19 +2,21 @@ package com.sustainabilitytracker.sustainabilitytracker.dtos.response;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
+
 import java.time.Instant;
 
 @Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 @JsonPropertyOrder({
-        "id",
-        "fullName",
-        "email",
-        "role",
-        "companyName",
-        "departmentName",
-        "isActive",
-        "createdAt"
+        "id", "fullName", "email", "role",
+        "companyName", "departmentName",
+        "isActive", "createdAt"
 })
 public class UserResponse {
     private Long id;
@@ -24,6 +26,8 @@ public class UserResponse {
     private String companyName;
     private String departmentName;
     private Boolean isActive;
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss", timezone = "UTC")
+    @JsonFormat(shape = JsonFormat.Shape.STRING,
+            pattern = "yyyy-MM-dd HH:mm:ss",
+            timezone = "UTC")
     private Instant createdAt;
 }
