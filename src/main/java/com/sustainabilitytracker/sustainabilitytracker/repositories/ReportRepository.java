@@ -11,7 +11,7 @@ import java.util.Optional;
 @Repository
 public interface ReportRepository extends JpaRepository<EsgReport, Long> {
 
-    List<EsgReport> findByCompanyIdOrderByCreatedAtDesc(Long companyId);
+    List<EsgReport> findByCompanyIdOrderByGeneratedAtDesc(Long companyId);
 
     Optional<EsgReport> findByIdAndCompanyId(Long id, Long companyId);
 
