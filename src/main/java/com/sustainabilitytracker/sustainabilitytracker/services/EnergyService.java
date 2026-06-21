@@ -205,7 +205,7 @@ public class EnergyService {
         List<EnergyData> energyList;
 
         if (currentUser.getRole() == Role.EMPLOYEE) {
-            energyList = energyRepository.findBySubmittedBy_Id(currentUser.getId());
+            energyList = energyRepository.findBySubmittedById(currentUser.getId());
         }
         else if (currentUser.getRole() == Role.DEPT_MANAGER) {
             energyList = energyRepository.findByDepartmentId(currentUser.getDepartment().getId());
