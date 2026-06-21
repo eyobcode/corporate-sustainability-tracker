@@ -8,7 +8,7 @@ import com.sustainabilitytracker.sustainabilitytracker.entities.Company;
 import com.sustainabilitytracker.sustainabilitytracker.entities.SustainabilityScore;
 import com.sustainabilitytracker.sustainabilitytracker.entities.User;
 import com.sustainabilitytracker.sustainabilitytracker.enums.AuditStatus;
-import com.sustainabilitytracker.sustainabilitytracker.enums.Role;
+import com.sustainabilitytracker.sustainabilitytracker.enums.DataStatus;
 import com.sustainabilitytracker.sustainabilitytracker.exceptions.AccessDeniedException;
 import com.sustainabilitytracker.sustainabilitytracker.exceptions.ResourceNotFoundException;
 import com.sustainabilitytracker.sustainabilitytracker.repositories.*;
@@ -21,6 +21,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -35,7 +36,7 @@ public class DashboardService {
     private final WaterRepository waterRepository;
     private final WasteRepository wasteRepository;
     private final ReportRepository reportRepository;
-    private final DashboardRepository dashboardRepository;
+    private final SocialRepository socialRepository;
 
     @Transactional(readOnly = true)
     public DashboardResponse getCompanyDashboard(Long companyId) {
@@ -43,45 +44,65 @@ public class DashboardService {
         User currentUser = SecurityUtils.getCurrentUser();
 
         if (!SecurityUtils.hasAccessToCompany(currentUser, companyId)) {
-            throw new AccessDeniedException("You do not have access to this company's dashboard");
+            throw new AccessDeniedException(
+                    "You do not have access to this company's dashboard"
+            );
         }
 
         Company company = companyRepository.findById(companyId)
-                .orElseThrow(() -> new ResourceNotFoundException("Company not found with id: " + companyId));
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Company not found with id: " + companyId
+                ));
 
-        // Latest Score
-        SustainabilityScore latestScore = scoreRepository
-                .findTopByCompanyIdOrderByCalculatedAtDesc(companyId).orElse(null);
+        ScoreResponse latestScore = mapToScoreResponse(
+                scoreRepository
+                        .findTopByCompanyIdOrderByCalculatedAtDesc(companyId)
+                        .orElse(null)
+        );
 
-        // Score History (last 6 months)
-        List<SustainabilityScore> scoreHistory = scoreRepository
-                .findTop6ByCompanyIdOrderByPeriodStartDesc(companyId);
+        List<ScoreResponse> scoreHistory = scoreRepository
+                .findTop6ByCompanyIdOrderByPeriodStartDesc(companyId)
+                .stream()
+                .map(this::mapToScoreResponse)
+                .collect(Collectors.toList());
 
         LocalDate now = LocalDate.now();
         LocalDate monthStart = now.withDayOfMonth(1);
 
-        // Key Metrics - Current Month
-        BigDecimal totalCo2 = emissionRepository.getTotalCo2(companyId, monthStart, now);
-        BigDecimal totalEnergy = energyRepository.getTotalKwh(companyId, monthStart, now);
-        BigDecimal totalWater = waterRepository.getTotalConsumedLiters(companyId, monthStart, now);
-        BigDecimal totalWaste = wasteRepository.getTotalKg(companyId, monthStart, now);
+        BigDecimal totalCo2 = emissionRepository
+                .getTotalCo2(companyId, monthStart, now);
+        BigDecimal totalEnergy = energyRepository
+                .getTotalKwh(companyId, monthStart, now);
+        BigDecimal totalWater = waterRepository
+                .getTotalConsumedLiters(companyId, monthStart, now);
+        BigDecimal totalWaste = wasteRepository
+                .getTotalKg(companyId, monthStart, now);
 
-        // Pending Items - Optimized single query
-        int pendingApprovals = dashboardRepository.countAllPendingByCompanyId(companyId);
-        int pendingReports = (int) reportRepository.countByCompanyIdAndAuditStatus(companyId, AuditStatus.PENDING);
+        int pendingApprovals = getPendingApprovalsCount(companyId);
+        int pendingReports = (int) reportRepository
+                .countByCompanyIdAndAuditStatus(
+                        companyId, AuditStatus.PENDING
+                );
+
+        log.info("Dashboard loaded for company: {} by user: {}",
+                companyId, currentUser.getId());
 
         return DashboardResponse.builder()
                 .companyId(company.getId())
                 .companyName(company.getName())
                 .latestScore(latestScore)
                 .scoreHistory(scoreHistory)
-                .totalCo2(totalCo2 != null ? totalCo2 : BigDecimal.ZERO)
-                .totalEnergyKwh(totalEnergy != null ? totalEnergy : BigDecimal.ZERO)
-                .totalWaterLiters(totalWater != null ? totalWater : BigDecimal.ZERO)
-                .totalWasteKg(totalWaste != null ? totalWaste : BigDecimal.ZERO)
+                .totalCo2(totalCo2 != null
+                        ? totalCo2 : BigDecimal.ZERO)
+                .totalEnergyKwh(totalEnergy != null
+                        ? totalEnergy : BigDecimal.ZERO)
+                .totalWaterLiters(totalWater != null
+                        ? totalWater : BigDecimal.ZERO)
+                .totalWasteKg(totalWaste != null
+                        ? totalWaste : BigDecimal.ZERO)
                 .pendingApprovals(pendingApprovals)
                 .pendingReports(pendingReports)
-                .unreadNotifications(0) // TODO: Integrate NotificationService later
+                .unreadNotifications(0)
                 .build();
     }
 
@@ -91,45 +112,16 @@ public class DashboardService {
         long totalCompanies = companyRepository.countByIsActiveTrue();
         long totalUsers = userRepository.countByIsActiveTrue();
         long totalReports = reportRepository.count();
-        long pendingAudits = reportRepository.countByAuditStatus(AuditStatus.PENDING);
+        long pendingAudits = reportRepository
+                .countByAuditStatus(AuditStatus.PENDING);
 
-        SustainabilityScore bestScoreEntity = scoreRepository
-                .findBestLatestScore().orElse(null);
+        ScoreResponse bestScore = mapToScoreResponse(
+                scoreRepository.findBestLatestScore().orElse(null)
+        );
 
-        SustainabilityScore worstScoreEntity = scoreRepository
-                .findWorstLatestScore().orElse(null);
-
-        ScoreResponse bestScore = bestScoreEntity != null
-                ? ScoreResponse.builder()
-                .id(bestScoreEntity.getId())
-                .companyId(bestScoreEntity.getCompany().getId())
-                .companyName(bestScoreEntity.getCompany().getName())
-                .environmentScore(bestScoreEntity.getEnvironmentScore())
-                .socialScore(bestScoreEntity.getSocialScore())
-                .governanceScore(bestScoreEntity.getGovernanceScore())
-                .totalScore(bestScoreEntity.getTotalScore())
-                .grade(bestScoreEntity.getGrade())
-                .periodStart(bestScoreEntity.getPeriodStart())
-                .periodEnd(bestScoreEntity.getPeriodEnd())
-                .calculatedAt(bestScoreEntity.getCalculatedAt())
-                .build()
-                : null;
-
-        ScoreResponse worstScore = worstScoreEntity != null
-                ? ScoreResponse.builder()
-                .id(worstScoreEntity.getId())
-                .companyId(worstScoreEntity.getCompany().getId())
-                .companyName(worstScoreEntity.getCompany().getName())
-                .environmentScore(worstScoreEntity.getEnvironmentScore())
-                .socialScore(worstScoreEntity.getSocialScore())
-                .governanceScore(worstScoreEntity.getGovernanceScore())
-                .totalScore(worstScoreEntity.getTotalScore())
-                .grade(worstScoreEntity.getGrade())
-                .periodStart(worstScoreEntity.getPeriodStart())
-                .periodEnd(worstScoreEntity.getPeriodEnd())
-                .calculatedAt(worstScoreEntity.getCalculatedAt())
-                .build()
-                : null;
+        ScoreResponse worstScore = mapToScoreResponse(
+                scoreRepository.findWorstLatestScore().orElse(null)
+        );
 
         SystemStatsResponse stats = SystemStatsResponse.builder()
                 .totalCompanies(totalCompanies)
@@ -139,12 +131,47 @@ public class DashboardService {
                 .activeCompanies(totalCompanies)
                 .build();
 
+        log.info("Admin dashboard loaded");
+
         return AdminDashboardResponse.builder()
                 .totalCompanies(totalCompanies)
                 .totalUsers(totalUsers)
                 .bestScore(bestScore)
                 .worstScore(worstScore)
                 .stats(stats)
+                .build();
+    }
+
+    private int getPendingApprovalsCount(Long companyId) {
+        int emission = emissionRepository
+                .countByCompanyIdAndStatus(companyId, DataStatus.PENDING);
+        int energy = energyRepository
+                .countByCompanyIdAndStatus(companyId, DataStatus.PENDING);
+        int water = waterRepository
+                .countByCompanyIdAndStatus(companyId, DataStatus.PENDING);
+        int waste = wasteRepository
+                .countByCompanyIdAndStatus(companyId, DataStatus.PENDING);
+        int social = socialRepository
+                .countByCompanyIdAndStatus(companyId, DataStatus.PENDING);
+
+        return emission + energy + water + waste + social;
+    }
+
+    private ScoreResponse mapToScoreResponse(SustainabilityScore entity) {
+        if (entity == null) return null;
+
+        return ScoreResponse.builder()
+                .id(entity.getId())
+                .companyId(entity.getCompany().getId())
+                .companyName(entity.getCompany().getName())
+                .environmentScore(entity.getEnvironmentScore())
+                .socialScore(entity.getSocialScore())
+                .governanceScore(entity.getGovernanceScore())
+                .totalScore(entity.getTotalScore())
+                .grade(entity.getGrade())
+                .periodStart(entity.getPeriodStart())
+                .periodEnd(entity.getPeriodEnd())
+                .calculatedAt(entity.getCalculatedAt())
                 .build();
     }
 }
