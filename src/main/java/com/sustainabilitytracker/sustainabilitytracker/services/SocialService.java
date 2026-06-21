@@ -173,7 +173,7 @@ public class SocialService {
         List<SocialData> list;
 
         if (currentUser.getRole() == Role.EMPLOYEE) {
-            list = socialRepository.findBySubmittedBy_Id(currentUser.getId());
+            list = socialRepository.findBySubmittedById(currentUser.getId());
         } else if (currentUser.getRole() == Role.DEPT_MANAGER) {
             if (currentUser.getDepartment() == null) {
                 throw new BusinessException("Department manager has no assigned department");
