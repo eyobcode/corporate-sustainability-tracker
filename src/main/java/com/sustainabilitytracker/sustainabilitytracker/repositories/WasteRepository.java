@@ -15,22 +15,22 @@ import java.util.List;
 @Repository
 public interface WasteRepository extends JpaRepository<WasteData, Long> {
 
-    boolean existsByDepartmentIdAndRecordedAtAndStatus(
-            Long departmentId,
-            LocalDate recordedAt,
-            DataStatus status
-    );
+    boolean existsByDepartmentIdAndRecordedAtAndStatus(Long departmentId, LocalDate recordedAt, DataStatus status);
 
     List<WasteData> findByCompanyId(Long companyId);
-    List<WasteData> findBySubmittedBy_Id(Long userId);
+
     List<WasteData> findByDepartmentId(Long departmentId);
+
+    List<WasteData> findBySubmittedById(Long userId);
+
+    int countByCompanyIdAndStatus(Long companyId, DataStatus status);
 
     @Query("""
             SELECT
-                SUM(w.totalKg)      AS totalKg,
-                SUM(w.recycledKg)   AS totalRecycledKg,
-                SUM(w.hazardousKg)  AS totalHazardousKg,
-                COUNT(w.id)         AS recordCount,
+                SUM(w.totalKg)     AS totalKg,
+                SUM(w.recycledKg)  AS totalRecycledKg,
+                SUM(w.hazardousKg) AS totalHazardousKg,
+                COUNT(w.id)        AS recordCount,
                 COALESCE(SUM(w.recycledKg) * 100.0
                     / NULLIF(SUM(w.totalKg), 0), 0) AS recyclingRate
             FROM WasteData w
@@ -68,16 +68,5 @@ public interface WasteRepository extends JpaRepository<WasteData, Long> {
             @Param("companyId") Long companyId,
             @Param("start") LocalDate start,
             @Param("end") LocalDate end
-    );
-
-    @Query("""
-            SELECT COUNT(w)
-            FROM WasteData w
-            WHERE w.company.id = :companyId
-            AND w.status = :status
-            """)
-    int countByCompanyIdAndStatus(
-            @Param("companyId") Long companyId,
-            @Param("status") DataStatus status
     );
 }
