@@ -173,7 +173,7 @@ public class WaterService {
         List<WaterData> waterList;
 
         if (currentUser.getRole() == Role.EMPLOYEE) {
-            waterList = waterRepository.findBySubmittedBy_Id(currentUser.getId());
+            waterList = waterRepository.findBySubmittedById(currentUser.getId());
         } else if (currentUser.getRole() == Role.DEPT_MANAGER) {
             waterList = waterRepository.findByDepartmentId(currentUser.getDepartment().getId());
         } else {
