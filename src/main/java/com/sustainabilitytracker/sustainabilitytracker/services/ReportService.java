@@ -7,10 +7,7 @@ import com.sustainabilitytracker.sustainabilitytracker.entities.Company;
 import com.sustainabilitytracker.sustainabilitytracker.entities.EsgReport;
 import com.sustainabilitytracker.sustainabilitytracker.entities.SustainabilityScore;
 import com.sustainabilitytracker.sustainabilitytracker.entities.User;
-import com.sustainabilitytracker.sustainabilitytracker.enums.AuditStatus;
-import com.sustainabilitytracker.sustainabilitytracker.enums.PeriodType;
-import com.sustainabilitytracker.sustainabilitytracker.enums.ReportType;
-import com.sustainabilitytracker.sustainabilitytracker.enums.Role;
+import com.sustainabilitytracker.sustainabilitytracker.enums.*;
 import com.sustainabilitytracker.sustainabilitytracker.exceptions.AccessDeniedException;
 import com.sustainabilitytracker.sustainabilitytracker.exceptions.BadRequestException;
 import com.sustainabilitytracker.sustainabilitytracker.exceptions.ResourceNotFoundException;
@@ -18,12 +15,10 @@ import com.sustainabilitytracker.sustainabilitytracker.mappers.ReportMapper;
 import com.sustainabilitytracker.sustainabilitytracker.repositories.CompanyRepository;
 import com.sustainabilitytracker.sustainabilitytracker.repositories.ReportRepository;
 import lombok.RequiredArgsConstructor;
-import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -79,7 +74,7 @@ public class ReportService {
                 .reportTitle(request.getReportTitle() != null ? request.getReportTitle() : "ESG Sustainability Report")
                 .reportType(request.getReportType() != null ? request.getReportType() : ReportType.FULL_ESG)
                 .filePath(filePath)
-                .fileFormat(request.getFileFormat() != null ? request.getFileFormat() : "PDF")
+                .fileFormat(request.getFileFormat() != null ? request.getFileFormat().name() : "PDF")
                 .periodStart(start)
                 .periodEnd(end)
                 .auditStatus(AuditStatus.PENDING)
@@ -142,15 +137,15 @@ public class ReportService {
         }
     }
 
-    private String generateFileName(Company company, LocalDate start, LocalDate end, String format) {
-        String ext = format != null ? format.toLowerCase() : "pdf";
+    private String generateFileName(Company company, LocalDate start, LocalDate end, FileFormat format) {
+        String ext = format != null ? format.name().toLowerCase() : "pdf";
         return company.getName().replace(" ", "_") +
                 "_ESG_Report_" + start + "_to_" + end + "." + ext;
     }
 
-    private byte[] generateReportFile(Company company, LocalDate start, LocalDate end, String format) {
+    private byte[] generateReportFile(Company company, LocalDate start, LocalDate end, FileFormat format) {
         // TODO: Implement real PDF/Excel generation later (iText or Apache POI)
-        if ("EXCEL".equalsIgnoreCase(format)) {
+        if (format == FileFormat.EXCEL) {
             throw new UnsupportedOperationException("Excel report generation not implemented yet");
         }
         // Default to plain text for now
