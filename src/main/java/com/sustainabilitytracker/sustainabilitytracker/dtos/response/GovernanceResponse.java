@@ -1,6 +1,5 @@
 package com.sustainabilitytracker.sustainabilitytracker.dtos.response;
 
-import com.sustainabilitytracker.sustainabilitytracker.enums.DataStatus;
 import lombok.Data;
 
 import java.math.BigDecimal;
