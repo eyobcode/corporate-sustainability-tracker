@@ -37,11 +37,12 @@ public class DashboardService {
     private final WasteRepository wasteRepository;
     private final ReportRepository reportRepository;
     private final SocialRepository socialRepository;
+    private final AuthService authService;
 
     @Transactional(readOnly = true)
     public DashboardResponse getCompanyDashboard(Long companyId) {
 
-        User currentUser = SecurityUtils.getCurrentUser();
+        User currentUser = authService.getCurrentUser();
 
         if (!SecurityUtils.hasAccessToCompany(currentUser, companyId)) {
             throw new AccessDeniedException(
