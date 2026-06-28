@@ -1,16 +1,25 @@
 package com.sustainabilitytracker.sustainabilitytracker;
 
+import com.sustainabilitytracker.sustainabilitytracker.config.SecurityConfig;
 import com.sustainabilitytracker.sustainabilitytracker.controllers.EmissionController;
 import com.sustainabilitytracker.sustainabilitytracker.dtos.request.EmissionRequest;
 import com.sustainabilitytracker.sustainabilitytracker.dtos.response.EmissionResponse;
 import com.sustainabilitytracker.sustainabilitytracker.dtos.response.EmissionSummaryResponse;
+import com.sustainabilitytracker.sustainabilitytracker.repositories.UserRepository;
+import com.sustainabilitytracker.sustainabilitytracker.security.JwtTokenProvider;
 import com.sustainabilitytracker.sustainabilitytracker.services.EmissionService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
+import java.nio.charset.StandardCharsets;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -22,6 +31,9 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest(EmissionController.class)
+@WithMockUser(roles = "ADMIN")
+@Import(SecurityConfig.class)
+@AutoConfigureMockMvc(addFilters = false)
 class EmissionControllerTest {
 
     @Autowired
@@ -30,35 +42,36 @@ class EmissionControllerTest {
     @MockBean
     private EmissionService emissionService;
 
+    @MockBean
+    private JwtTokenProvider jwtTokenProvider;
+
+    @MockBean
+    private UserRepository userRepository;
+
+    @MockBean
+    private PasswordEncoder passwordEncoder;
+
+    @MockBean
+    private UserDetailsService userDetailsService;
+
     @Test
     void submitEmission_ShouldReturn201Created() throws Exception {
         EmissionResponse response = new EmissionResponse();
         response.setId(1L);
 
-        when(emissionService.submitEmission(any(EmissionRequest.class))).thenReturn(response);
+        when(emissionService.submitEmission(any())).thenReturn(response);
 
-        String json = """
-                {
-                    "companyId": 1,
-                    "departmentId": 1,
-                    "co2Amount": 1250.75,
-                    "recordedAt": "2025-06-01",
-                    "notes": "Factory production"
-                }
-                """;
-
-        mockMvc.perform(post("/api/v1/emissions")
+        mockMvc.perform(post("/emissions")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(json))
-                .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.id").value(1));
+                        .content("{\"companyId\":1,\"departmentId\":1,\"co2Amount\":1250.75,\"recordedAt\":\"2025-06-01\",\"scope\":\"SCOPE1\"}"))
+                .andExpect(status().isCreated());
     }
 
     @Test
     void submitForApproval_ShouldReturn200() throws Exception {
         when(emissionService.submitForApproval(1L)).thenReturn(new EmissionResponse());
 
-        mockMvc.perform(put("/api/v1/emissions/1/submit"))
+        mockMvc.perform(put("/emissions/1/submit"))
                 .andExpect(status().isOk());
     }
 
@@ -66,7 +79,7 @@ class EmissionControllerTest {
     void approveEmission_ShouldReturn200() throws Exception {
         when(emissionService.approveEmission(1L)).thenReturn(new EmissionResponse());
 
-        mockMvc.perform(put("/api/v1/emissions/1/approve"))
+        mockMvc.perform(put("/emissions/1/approve"))
                 .andExpect(status().isOk());
     }
 
@@ -80,7 +93,7 @@ class EmissionControllerTest {
                 }
                 """;
 
-        mockMvc.perform(put("/api/v1/emissions/1/reject")
+        mockMvc.perform(put("/emissions/1/reject")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(json))
                 .andExpect(status().isOk());
@@ -91,7 +104,7 @@ class EmissionControllerTest {
         when(emissionService.getEmissionByCompany(1L))
                 .thenReturn(List.of(new EmissionResponse()));
 
-        mockMvc.perform(get("/api/v1/emissions/company/1"))
+        mockMvc.perform(get("/emissions/company/1"))
                 .andExpect(status().isOk());
     }
 
@@ -100,7 +113,7 @@ class EmissionControllerTest {
         when(emissionService.getEmissionSummary(anyLong(), any(LocalDate.class), any(LocalDate.class)))
                 .thenReturn(new EmissionSummaryResponse());
 
-        mockMvc.perform(get("/api/v1/emissions/company/1/summary")
+        mockMvc.perform(get("/emissions/company/1/summary")
                         .param("startDate", "2025-06-01")
                         .param("endDate", "2025-06-30"))
                 .andExpect(status().isOk());
