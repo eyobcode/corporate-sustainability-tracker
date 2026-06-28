@@ -1,14 +1,9 @@
 package com.sustainabilitytracker.sustainabilitytracker;
 
+import com.sustainabilitytracker.sustainabilitytracker.entities.Company;
 import com.sustainabilitytracker.sustainabilitytracker.entities.SustainabilityScore;
 import com.sustainabilitytracker.sustainabilitytracker.enums.PeriodType;
-import com.sustainabilitytracker.sustainabilitytracker.repositories.EmissionRepository;
-import com.sustainabilitytracker.sustainabilitytracker.repositories.EnergyRepository;
-import com.sustainabilitytracker.sustainabilitytracker.repositories.WaterRepository;
-import com.sustainabilitytracker.sustainabilitytracker.repositories.WasteRepository;
-import com.sustainabilitytracker.sustainabilitytracker.repositories.SocialRepository;
-import com.sustainabilitytracker.sustainabilitytracker.repositories.GovernanceRepository;
-import com.sustainabilitytracker.sustainabilitytracker.repositories.SustainabilityScoreRepository;
+import com.sustainabilitytracker.sustainabilitytracker.repositories.*;
 import com.sustainabilitytracker.sustainabilitytracker.services.ScoreCalculationService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -18,6 +13,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -40,8 +36,14 @@ class ScoreCalculationServiceTest {
     @Mock
     private SustainabilityScoreRepository scoreRepository;
 
+    @Mock
+    private CompanyRepository companyRepository;
+
     @InjectMocks
     private ScoreCalculationService scoreCalculationService;
+
+    @Mock
+    private SustainabilityTargetRepository targetRepository;
 
     @Test
     void calculateAndSaveScore_WithAllData_ShouldReturnCorrectScore() {
@@ -55,6 +57,7 @@ class ScoreCalculationServiceTest {
         when(wasteRepository.getTotalRecycledKg(anyLong(), any(), any())).thenReturn(BigDecimal.valueOf(1200));
 
         when(scoreRepository.save(any(SustainabilityScore.class))).thenAnswer(i -> i.getArgument(0));
+        when(companyRepository.findById(1L)).thenReturn(Optional.of(Company.builder().id(1L).build()));
 
         SustainabilityScore score = scoreCalculationService
                 .calculateAndSaveScore(1L,
