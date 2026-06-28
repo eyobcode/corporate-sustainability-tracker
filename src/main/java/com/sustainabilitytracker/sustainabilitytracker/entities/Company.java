@@ -2,12 +2,10 @@ package com.sustainabilitytracker.sustainabilitytracker.entities;
 
 import com.sustainabilitytracker.sustainabilitytracker.enums.CompanySize;
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 import org.hibernate.annotations.ColumnDefault;
 import org.hibernate.annotations.CreationTimestamp;
 
-import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
@@ -16,6 +14,9 @@ import java.util.List;
 @Setter
 @Entity
 @Table(name = "companies")
+@AllArgsConstructor
+@NoArgsConstructor
+@Builder
 public class Company {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
