@@ -1,15 +1,25 @@
 package com.sustainabilitytracker.sustainabilitytracker;
 
+import com.sustainabilitytracker.sustainabilitytracker.config.JwtProperties;
+import com.sustainabilitytracker.sustainabilitytracker.config.SecurityConfig;
 import com.sustainabilitytracker.sustainabilitytracker.controllers.AuthController;
 import com.sustainabilitytracker.sustainabilitytracker.dtos.request.LoginRequest;
 import com.sustainabilitytracker.sustainabilitytracker.dtos.response.LoginResponse;
+import com.sustainabilitytracker.sustainabilitytracker.repositories.UserRepository;
+import com.sustainabilitytracker.sustainabilitytracker.security.JwtTokenProvider;
 import com.sustainabilitytracker.sustainabilitytracker.services.AuthService;
+import com.sustainabilitytracker.sustainabilitytracker.services.EmissionService;
 import jakarta.servlet.http.HttpServletResponse;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 
 import static org.mockito.ArgumentMatchers.any;
@@ -18,6 +28,9 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest(AuthController.class)
+@Import({JwtProperties.class, SecurityConfig.class})
+@WithMockUser(username = "admin@test.com", roles = "ADMIN")
+@AutoConfigureMockMvc(addFilters = false)
 class AuthControllerTest {
 
     @Autowired
@@ -25,6 +38,21 @@ class AuthControllerTest {
 
     @MockBean
     private AuthService authService;
+
+    @MockBean
+    private EmissionService emissionService;
+
+    @MockBean
+    private JwtTokenProvider jwtTokenProvider;
+
+    @MockBean
+    private UserRepository userRepository;
+
+    @MockBean
+    private PasswordEncoder passwordEncoder;
+
+    @MockBean
+    private UserDetailsService userDetailsService;
 
     @Test
     void login_Success_Returns200() throws Exception {
@@ -48,7 +76,7 @@ class AuthControllerTest {
                 """;
 
         // When & Then
-        mockMvc.perform(post("/api/v1/auth/login")
+        mockMvc.perform(post("/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(json))
                 .andExpect(status().isOk())
